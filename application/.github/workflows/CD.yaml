@@ -1,0 +1,35 @@
+name: CD
+run-name: CD by Packer
+on:
+  workflow_run:
+    workflows: [ami_actions]
+    types:
+      - completed
+jobs:
+  packer_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: create launch template
+        run: |
+          AMI_ID=$(aws ec2 describe-images --owners "652903061602" --query 'reverse(sort_by(Images, &CreationDate))[0].ImageId')
+          aws ec2 create-launch-template-version --launch-template-name webAppLaunchTemplate --source-version '$Latest' --launch-template-data '{"ImageId":'$AMI_ID'}'
+      - name: update auto scaling group
+        run: |
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name autoScalingGroup --launch-template LaunchTemplateName=webAppLaunchTemplate,Version=\$Latest
+      - name: refresh instance
+        run: aws autoscaling start-instance-refresh --auto-scaling-group-name autoScalingGroup
+
+      - name: Wait for instance refresh
+        run: |
+          STATUS=""
+          until [ "$STATUS" == "Successful" ]; do
+            sleep 30
+            STATUS=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name autoScalingGroup --query 'InstanceRefreshes[0].Status' --output text)
+          done
