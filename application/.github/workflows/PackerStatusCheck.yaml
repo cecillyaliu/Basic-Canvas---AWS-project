@@ -1,0 +1,62 @@
+name: Packer Status Check
+run-name: Packer Status Check By @${{ github.actor }}
+on:
+  push:
+    branches: [main]
+
+jobs:
+  CI_test:
+    env:
+      RootPassword: root
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.21']
+
+
+    steps:
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql database: 'User'
+          mysql root password: '123456'
+
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Display Go version
+        run: go version
+      - name: Install dependencies
+        run: go mod tidy
+      - name: Test with the Go CLI
+        run: go test ./...
+
+      - name: Setup packer
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: "1.8.3"
+
+      - name: Init packer
+        run: packer init .
+
+      - name: Status Check Packer fmt .
+        run: |
+          if packer fmt .; then
+            echo "Packer template is properly formatted."
+          else
+            echo "Packer template is not properly formatted. Please run 'packer fmt' locally and commit the changes."
+            exit 1
+          fi
+
+      - name: Status Check Packer validate .
+        run: |
+          if packer validate .; then
+            echo "Packer template is valid."
+          else
+            echo "Packer template is not valid. Please fix the issues in the template."
+            exit 1
+          fi

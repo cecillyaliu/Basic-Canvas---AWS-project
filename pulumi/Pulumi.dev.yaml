@@ -1,0 +1,10 @@
+config:
+  gcp:project: dev-csye6225-406007
+
+#  aws:region: us-west-2
+#  iac-pulumi:Pulumi.dev.yaml: ""
+#  iac-pulumi:vpc-private-subnet-ips: "10.1.2.0/24,10.1.4.0/24,10.1.6.0/24"
+#  iac-pulumi:vpc-private-subnet-zones: "us-west-2a,us-west-2b,us-west-2c"
+#  iac-pulumi:vpc-public-subnet-ips: "10.1.1.0/24,10.1.3.0/24,10.1.5.0/24"
+#  iac-pulumi:vpc-public-subnet-zones: "us-west-2a,us-west-2b,us-west-2c"
+#  iac-pulumi:vpcCIDR: 10.1.0.0/16

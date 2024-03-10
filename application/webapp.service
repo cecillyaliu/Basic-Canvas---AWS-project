@@ -1,0 +1,12 @@
+[Unit]
+Description=test autostart demo
+After=cloud-final.service
+
+[Service]
+ExecStart=/home/admin/output/bootstrap.sh
+Restart=always
+RestartSec=3
+TimeoutStopSec=60
+EnvironmentFile=/home/admin/env/properties
+[Install]
+WantedBy=cloud-init.target
